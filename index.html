@@ -262,7 +262,7 @@
 
           const tweet = {
             text,
-            image: currentImage ? await compressImage(currentImage) : null,
+            image: currentImage,
             date: date.toISOString(),
           };
 
@@ -426,37 +426,6 @@
             alert("Failed to load image. Please try again.");
           };
         }
-      }
-
-      function compressImage(base64String) {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = function () {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-
-            // More aggressive size reduction (max 600px width/height)
-            let width = img.width;
-            let height = img.height;
-            const maxSize = 600;
-
-            if (width > height && width > maxSize) {
-              height = (height * maxSize) / width;
-              width = maxSize;
-            } else if (height > maxSize) {
-              width = (width * maxSize) / height;
-              height = maxSize;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
-            ctx.drawImage(img, 0, 0, width, height);
-            // Reduce quality to 0.5 for better compression
-            resolve(canvas.toDataURL("image/jpeg", 0.5));
-          };
-          img.src = base64String;
-        });
       }
 
       function deleteTweet(index, event) {
