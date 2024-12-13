@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tweet Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@heroicons/v1/outline/esm/index.js"></script>
+    <style>
+      .dropzone {
+        border: 2px dashed #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        transition: border-color 0.3s ease;
+        cursor: pointer;
+      }
+      .dropzone.dragover {
+        border-color: #94a3b8;
+      }
+      .copy-success {
+        animation: fadeInOut 1s ease;
+        background-color: #10b981;
+        color: white;
+      }
+      @keyframes fadeInOut {
+        0% {
+          background-color: transparent;
+        }
+        20% {
+          background-color: #10b981;
+        }
+        80% {
+          background-color: #10b981;
+        }
+        100% {
+          background-color: transparent;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto space-y-8">
+      <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 space-y-4">
+        <h1
+          class="text-xl sm:text-2xl font-semibold text-gray-900 flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 sm:h-7 sm:w-7 text-blue-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"
+            />
+            <path
+              d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"
+            />
+          </svg>
+          Tweet Planner
+        </h1>
+
+        <div>
+          <textarea
+            id="tweetText"
+            class="w-full p-3 border rounded-lg resize-none h-24"
+            placeholder="What's happening?"
+          ></textarea>
+        </div>
+
+        <div id="dropzone" class="dropzone">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-12 w-12 mx-auto mb-2 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <p class="text-gray-500">
+            Drag and drop an image here, or click to select
+          </p>
+          <input type="file" id="fileInput" class="hidden" accept="image/*" />
+          <img id="preview" class="hidden max-w-full h-auto mt-4 rounded-lg" />
+        </div>
+
+        <button
+          id="scheduleBtn"
+          class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Schedule Tweet
+        </button>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+        <h2
+          class="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 sm:h-6 sm:w-6 text-blue-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Scheduled Tweets
+        </h2>
+        <div id="scheduledTweets" class="space-y-4"></div>
+      </div>
+    </div>
+
+    <script>
+      let scheduledTweets = loadFromCookies() || [];
+
+      function loadFromCookies() {
+        try {
+          const saved = localStorage.getItem("scheduledTweets");
+          return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+          console.error("Error loading tweets from storage:", error);
+          return [];
+        }
+      }
+
+      function saveToCookies() {
+        try {
+          localStorage.setItem(
+            "scheduledTweets",
+            JSON.stringify(scheduledTweets)
+          );
+        } catch (error) {
+          console.error("Error saving tweets to storage:", error);
+          if (error.name === "QuotaExceededError") {
+            alert("Storage is full. Please delete some old tweets.");
+            scheduledTweets.pop();
+            try {
+              localStorage.setItem(
+                "scheduledTweets",
+                JSON.stringify(scheduledTweets)
+              );
+            } catch (retryError) {
+              console.error(
+                "Still cannot save after removing tweet:",
+                retryError
+              );
+            }
+          }
+        }
+      }
+
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("fileInput");
+      const preview = document.getElementById("preview");
+      let currentImage = null;
+
+      // Drag and drop handlers
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("dragover");
+      });
+
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.classList.remove("dragover");
+      });
+
+      dropzone.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+          handleImage(file);
+        }
+      });
+
+      dropzone.addEventListener("click", () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files[0]) {
+          handleImage(e.target.files[0]);
+        }
+      });
+
+      async function handleImage(file) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove("hidden");
+
+        // Convert image to base64
+        const reader = new FileReader();
+        reader.onloadend = function () {
+          currentImage = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function getReadableDate(date) {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+
+        const targetDate = new Date(date);
+
+        // Remove time component for comparison
+        today.setHours(0, 0, 0, 0);
+        tomorrow.setHours(0, 0, 0, 0);
+        targetDate.setHours(0, 0, 0, 0);
+
+        if (targetDate.getTime() === today.getTime()) {
+          return "Today";
+        } else if (targetDate.getTime() === tomorrow.getTime()) {
+          return "Tomorrow";
+        } else if (targetDate < nextWeek) {
+          return targetDate.toLocaleDateString("en-US", { weekday: "long" });
+        } else {
+          return targetDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year:
+              today.getFullYear() !== targetDate.getFullYear()
+                ? "numeric"
+                : undefined,
+          });
+        }
+      }
+
+      document
+        .getElementById("scheduleBtn")
+        .addEventListener("click", async () => {
+          const text = document.getElementById("tweetText").value;
+          if (!text) return;
+
+          const date = new Date();
+          date.setDate(date.getDate() + scheduledTweets.length + 1);
+
+          const tweet = {
+            text,
+            image: currentImage ? await compressImage(currentImage) : null,
+            date: date.toISOString(),
+          };
+
+          scheduledTweets.push(tweet);
+          updateScheduledTweets();
+          saveToCookies();
+
+          // Reset form
+          document.getElementById("tweetText").value = "";
+          preview.classList.add("hidden");
+          preview.src = "";
+          currentImage = null;
+        });
+
+      function updateScheduledTweets() {
+        const container = document.getElementById("scheduledTweets");
+        container.innerHTML = "";
+        saveToCookies();
+
+        scheduledTweets.forEach((tweet, index) => {
+          const tweetEl = document.createElement("div");
+          tweetEl.className = "p-4 border rounded-lg";
+
+          const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            tweet.text
+          )}`;
+
+          tweetEl.innerHTML = `
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                ${
+                  tweet.image
+                    ? `<div class="flex-shrink-0">
+                        <img src="${tweet.image}" class="w-16 h-16 object-cover rounded-lg">
+                      </div>`
+                    : ""
+                }
+                <div class="flex-grow space-y-2">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
+                        <p class="text-gray-900">${tweet.text}</p>
+                        <span class="text-sm text-gray-500 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                            </svg>
+                            ${getReadableDate(tweet.date)}
+                        </span>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 mt-3">
+                        <div class="flex-1 flex gap-2">
+                        ${
+                          tweet.image
+                            ? `
+                            <button onclick="copyImageUrl(${index}, event)" 
+                               class="px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50 flex items-center justify-center gap-1 min-w-[120px]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
+                                    <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" />
+                                </svg>
+                                Copy Image
+                            </button>
+                            `
+                            : ""
+                        }
+                        <a href="${tweetUrl}" target="_blank" 
+                           class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center gap-1 min-w-[120px]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Tweet Now
+                        </a>
+                        </div>
+                        <button onclick="deleteTweet(${index}, event)"
+                           class="px-3 py-1.5 text-sm border border-red-200 text-red-600 rounded-md hover:bg-red-50 flex items-center justify-center gap-1 min-w-[120px]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+          `;
+
+          container.appendChild(tweetEl);
+        });
+      }
+
+      function copyImageUrl(index, event) {
+        const tweet = scheduledTweets[index];
+        if (tweet.image) {
+          const button = event.currentTarget;
+
+          // Create a temporary image element
+          const img = document.createElement("img");
+          img.crossOrigin = "anonymous";
+          img.src = tweet.image;
+
+          img.onload = async () => {
+            try {
+              // Create a canvas to handle the image
+              const canvas = document.createElement("canvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+
+              // Try to get the image as PNG blob
+              canvas.toBlob(async (blob) => {
+                try {
+                  await navigator.clipboard.write([
+                    new ClipboardItem({
+                      [blob.type]: blob,
+                    }),
+                  ]);
+
+                  // Show success state
+                  button.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Image Copied!
+                  `;
+                  button.classList.add("copy-success");
+
+                  // Reset button after 1 second
+                  setTimeout(() => {
+                    button.innerHTML = `
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
+                        <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" />
+                      </svg>
+                      Copy Image
+                    `;
+                    button.classList.remove("copy-success");
+                  }, 1000);
+                } catch (err) {
+                  console.error("Failed to copy image: ", err);
+                  // Fallback to copying image URL if clipboard write fails
+                  try {
+                    await navigator.clipboard.writeText(tweet.image);
+                    button.innerHTML = `
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                      URL Copied!
+                    `;
+                    button.classList.add("copy-success");
+                  } catch (urlErr) {
+                    alert(
+                      "Failed to copy image. Your browser might not support this feature."
+                    );
+                  }
+                }
+              }, "image/png");
+            } catch (err) {
+              console.error("Failed to process image: ", err);
+              alert("Failed to process image. Please try again.");
+            }
+          };
+
+          img.onerror = () => {
+            console.error("Failed to load image");
+            alert("Failed to load image. Please try again.");
+          };
+        }
+      }
+
+      function compressImage(base64String) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            // More aggressive size reduction (max 600px width/height)
+            let width = img.width;
+            let height = img.height;
+            const maxSize = 600;
+
+            if (width > height && width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            } else if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(img, 0, 0, width, height);
+            // Reduce quality to 0.5 for better compression
+            resolve(canvas.toDataURL("image/jpeg", 0.5));
+          };
+          img.src = base64String;
+        });
+      }
+
+      function deleteTweet(index, event) {
+        const button = event.currentTarget;
+
+        // Add confirmation animation
+        button.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          Confirm?
+        `;
+        button.classList.add("bg-red-50");
+
+        // Create a timeout to reset the button if not clicked again
+        const timeout = setTimeout(() => {
+          button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            Delete
+          `;
+          button.classList.remove("bg-red-50");
+          button.onclick = (event) => deleteTweet(index, event);
+        }, 2000);
+
+        // Change the onclick to handle confirmation
+        button.onclick = (event) => {
+          clearTimeout(timeout);
+          scheduledTweets.splice(index, 1);
+          updateScheduledTweets();
+          saveToCookies();
+        };
+      }
+
+      // Load saved tweets on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        updateScheduledTweets();
+      });
+    </script>
+  </body>
+</html>
