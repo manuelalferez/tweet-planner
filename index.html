@@ -9,7 +9,7 @@
     <link
       rel="icon"
       type="image/svg+xml"
-      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233B82F6"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg>'
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233B82F6"><path d="M6 2c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm0 2h7v5h5v11H6V4zm2 8v2h8v-2H8zm0 4v2h8v-2H8z"/></svg>'
     />
     <style>
       .dropzone {
@@ -47,21 +47,20 @@
   <body class="bg-gray-50 min-h-screen flex flex-col">
     <header>
       <div class="max-w-2xl mx-auto px-8 pt-8">
-        <div class="bg-white rounded-lg shadow-sm p-4">
-          <div class="flex items-center space-x-3">
-            <svg
-              class="h-8 w-8 text-blue-500"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-4.3 7.2-3.5 1.78-6.6-.22-6.6-.22s2.2.2 3.38-.83c0 0-2.3-.2-2.8-2.9 0 0 .7.1 1.2-.1s-2.3-1.1-2.3-3.3c0 0 .7.3 1.3.3-1.1-.8-1.8-3.3-.8-4.4 0 0 2.3 3.1 6.6 3.1-.1-.4-.1-.8-.1-1.2 0-2.2 1.8-4 4-4 1.2 0 2.3.5 3 1.3.9-.2 1.8-.5 2.5-1-.3.9-.9 1.6-1.7 2.1.8-.1 1.6-.3 2.3-.6-.6.8-1.2 1.4-2 1.9z"
-              />
-            </svg>
-            <span class="text-xl font-semibold text-gray-900"
-              >Tweet Planner</span
-            >
-          </div>
+        <div
+          class="bg-blue-600 rounded-xl shadow-lg p-4 flex items-center space-x-3"
+        >
+          <svg
+            class="h-8 w-8 text-white"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19 4h-1V3c0-.55-.45-1-1-1s-1 .45-1 1v1H8V3c0-.55-.45-1-1-1s-1 .45-1 1v1H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h10v2H7zm0 4h7v2H7z"
+            />
+          </svg>
+          <span class="text-xl font-semibold text-white">Tweet Planner</span>
         </div>
       </div>
     </header>
@@ -88,7 +87,7 @@
                   Schedule Your Tweets
                 </h1>
                 <p class="text-sm text-gray-600 mt-1">
-                  Plan and schedule your Twitter content ahead of time
+                  Plan and schedule your 𝕏 content ahead of time
                 </p>
               </div>
             </h1>
@@ -179,7 +178,7 @@
     <footer>
       <div class="mt-8 max-w-2xl mx-auto px-8 pb-8">
         <div
-          class="bg-blue-600 rounded-xl shadow-lg p-6 flex flex-col md:flex-row items-center justify-between gap-4"
+          class="bg-blue-600 rounded-xl shadow-lg p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
         >
           <div class="flex items-center gap-4">
             <img
@@ -189,41 +188,26 @@
             />
             <div>
               <div class="font-medium text-white">Created by</div>
-              <div class="flex items-center gap-4">
-                <a
-                  href="https://twitter.com/manuelalferez"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-white hover:text-blue-100 transition-colors font-semibold flex items-center gap-1"
+              <a
+                href="https://twitter.com/manuelalferez"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-white hover:text-blue-100 transition-colors font-semibold flex items-center gap-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  class="inline-block"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="inline-block"
-                  >
-                    <path
-                      d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-                    />
-                  </svg>
-                  @manuelalferez
-                </a>
-                <a
-                  href="https://github.com/manuelalferez/tweet-planner"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-white hover:text-blue-100 transition-colors font-semibold flex items-center gap-1"
-                >
-                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                    />
-                  </svg>
-                  GitHub
-                </a>
-              </div>
+                  <path
+                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                  />
+                </svg>
+                @manuelalferez
+              </a>
             </div>
           </div>
           <a
