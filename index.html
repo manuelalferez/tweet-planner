@@ -213,7 +213,9 @@
               </svg>
               Scheduled Tweets
             </h2>
-            <div id="scheduledTweets" class="space-y-4"></div>
+            <div id="scheduledTweets" class="space-y-4">
+              <!-- Empty state message will be shown here when no tweets -->
+            </div>
           </div>
         </div>
       </div>
@@ -413,6 +415,19 @@
         const container = document.getElementById("scheduledTweets");
         container.innerHTML = "";
         saveToCookies();
+
+        if (scheduledTweets.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 class="text-lg font-medium text-gray-900 mb-1">No tweets scheduled yet</h3>
+              <p class="text-gray-500">Start planning your content by creating your first tweet above!</p>
+            </div>
+          `;
+          return;
+        }
 
         scheduledTweets.forEach((tweet, index) => {
           const tweetEl = document.createElement("div");
