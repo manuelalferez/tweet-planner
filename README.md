@@ -2,7 +2,7 @@
 
 A minimalist web application for planning and scheduling your X (formerly Twitter) content. Plan your tweets ahead of time with a clean and intuitive interface.
 
-![Tweet Planner Screenshot](screenshot.png)
+![Tweet Planner Screenshot](https://ik.imagekit.io/manuelalferez/tweet-planner/SCR-20241213-rozn_8VX5vwTHm.png?updatedAt=1734117258968)
 
 ## Features
 
