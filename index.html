@@ -338,13 +338,84 @@
       </div>
     </footer>
 
+    <!-- Edit Tweet Modal -->
+    <div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
+      <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+        <div class="p-4 border-b">
+          <h3 class="text-xl font-semibold text-gray-900">Edit Tweet</h3>
+        </div>
+        <div class="p-4 space-y-4">
+          <textarea
+            id="editTweetText"
+            class="w-full p-3 border rounded-lg resize-none h-24"
+            placeholder="What's happening?"
+          ></textarea>
+          
+          <div id="editDropzone" class="dropzone">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12 mx-auto mb-2 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <p class="text-gray-500">
+              Drag and drop an image here, or click to select
+            </p>
+            <input
+              type="file"
+              id="editFileInput"
+              class="hidden"
+              accept="image/*"
+            />
+            <img
+              id="editPreview"
+              class="hidden max-w-[50%] h-auto mt-4 rounded-lg mx-auto"
+            />
+          </div>
+
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+            </svg>
+            <select id="editDateSelector" class="flex-1 p-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <!-- Options will be populated by JavaScript -->
+            </select>
+          </div>
+        </div>
+        <div class="p-4 border-t flex justify-end gap-2">
+          <button
+            onclick="closeEditModal()"
+            class="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium rounded-md hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onclick="saveEditedTweet()"
+            class="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
       let scheduledTweets = loadFromCookies() || [];
 
       function loadFromCookies() {
         try {
           const saved = localStorage.getItem("scheduledTweets");
-          return saved ? JSON.parse(saved) : [];
+          const tweets = saved ? JSON.parse(saved) : [];
+          // Sort tweets by date (earliest first)
+          return tweets.sort((a, b) => new Date(a.date) - new Date(b.date));
         } catch (error) {
           console.error("Error loading tweets from storage:", error);
           return [];
@@ -497,7 +568,7 @@
         updateScheduledTweets();
       });
 
-      // Update the schedule button click handler to use selected date
+      // Update the schedule button click handler
       document.getElementById("scheduleBtn").addEventListener("click", async () => {
           const text = document.getElementById("tweetText").value;
           if (!text) return;
@@ -511,6 +582,9 @@
           };
 
           scheduledTweets.push(tweet);
+          // Sort tweets by date after adding new one
+          scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
+          
           updateScheduledTweets();
           saveToCookies();
 
@@ -530,6 +604,10 @@
       function updateScheduledTweets() {
         const container = document.getElementById("scheduledTweets");
         const counter = document.getElementById("tweetCounter");
+        
+        // Sort tweets before updating UI
+        scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
         container.innerHTML = "";
         saveToCookies();
 
@@ -600,12 +678,20 @@
                             Tweet Now
                         </a>
                         </div>
-                        <button onclick="deleteTweet(${index}, event)"
-                           class="px-2 py-1.5 text-sm border border-red-200 text-red-600 rounded-md hover:bg-red-50 flex items-center justify-center gap-1 w-10 h-10 transition-all duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
+                        <div class="flex gap-2">
+                          <button onclick="editTweet(${index})"
+                             class="px-2 py-1.5 text-sm border border-blue-200 text-blue-600 rounded-md hover:bg-blue-50 flex items-center justify-center gap-1 w-10 h-10 transition-all duration-200">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                              </svg>
+                          </button>
+                          <button onclick="deleteTweet(${index}, event)"
+                             class="px-2 py-1.5 text-sm border border-red-200 text-red-600 rounded-md hover:bg-red-50 flex items-center justify-center gap-1 w-10 h-10 transition-all duration-200">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                              </svg>
+                          </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -749,6 +835,161 @@
           content.classList.add("hidden");
           arrow.style.transform = "rotate(0deg)";
         }
+      }
+
+      let editingTweetIndex = -1;
+      
+      function editTweet(index) {
+        editingTweetIndex = index;
+        const tweet = scheduledTweets[index];
+        
+        // Populate the edit form
+        document.getElementById('editTweetText').value = tweet.text;
+        
+        // Handle image
+        const editPreview = document.getElementById('editPreview');
+        if (tweet.image) {
+          editPreview.src = tweet.image;
+          editPreview.classList.remove('hidden');
+        } else {
+          editPreview.classList.add('hidden');
+        }
+        
+        // Populate date selector and set the correct date
+        const editDateSelector = document.getElementById('editDateSelector');
+        populateDateSelector(editDateSelector);
+        
+        // Find the closest available date to the tweet's date
+        const tweetDate = new Date(tweet.date);
+        const today = new Date();
+        const options = editDateSelector.options;
+        let bestMatch = options[0];
+        let minDiff = Infinity;
+        
+        for (let option of options) {
+          const optionDate = new Date(option.value);
+          const diff = Math.abs(optionDate - tweetDate);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestMatch = option;
+          }
+        }
+        
+        editDateSelector.value = bestMatch.value;
+        
+        // Show modal
+        document.getElementById('editModal').classList.remove('hidden');
+        document.getElementById('editModal').classList.add('flex');
+      }
+      
+      function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+        document.getElementById('editModal').classList.remove('flex');
+        editingTweetIndex = -1;
+      }
+      
+      function saveEditedTweet() {
+        if (editingTweetIndex === -1) return;
+        
+        const tweet = scheduledTweets[editingTweetIndex];
+        tweet.text = document.getElementById('editTweetText').value;
+        tweet.date = document.getElementById('editDateSelector').value;
+        
+        // Update image if changed
+        const editPreview = document.getElementById('editPreview');
+        if (!editPreview.classList.contains('hidden')) {
+          tweet.image = editPreview.src;
+        } else {
+          tweet.image = null;
+        }
+        
+        // Sort tweets by date
+        scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        updateScheduledTweets();
+        saveToCookies();
+        closeEditModal();
+      }
+      
+      // Add edit dropzone handlers
+      const editDropzone = document.getElementById('editDropzone');
+      const editFileInput = document.getElementById('editFileInput');
+      const editPreview = document.getElementById('editPreview');
+      
+      editDropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        editDropzone.classList.add('dragover');
+      });
+      
+      editDropzone.addEventListener('dragleave', () => {
+        editDropzone.classList.remove('dragover');
+      });
+      
+      editDropzone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        editDropzone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          handleEditImage(file);
+        }
+      });
+      
+      editDropzone.addEventListener('click', () => {
+        editFileInput.click();
+      });
+      
+      editFileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+          handleEditImage(e.target.files[0]);
+        }
+      });
+      
+      async function handleEditImage(file) {
+        // Convert image to base64 before setting the preview
+        const reader = new FileReader();
+        reader.onloadend = function () {
+          editPreview.src = reader.result;
+          editPreview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Modified populateDateSelector to work with both new tweets and edit modal
+      function populateDateSelector(selector = document.getElementById('dateSelector')) {
+        // Clear existing options
+        selector.innerHTML = '';
+        
+        const days = [];
+        const today = new Date();
+        
+        // Generate next 7 days
+        for(let i = 0; i < 8; i++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() + i);
+          days.push(date);
+        }
+        
+        // Create options
+        days.forEach((date, index) => {
+          const option = document.createElement('option');
+          option.value = date.toISOString();
+          
+          let label;
+          if (index === 0) {
+            label = 'Today';
+          } else if (index === 1) {
+            label = 'Tomorrow';
+          } else {
+            label = date.toLocaleDateString('en-US', { 
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric'
+            });
+          }
+          
+          option.textContent = label;
+          selector.appendChild(option);
+        });
       }
     </script>
   </body>
