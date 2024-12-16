@@ -900,9 +900,28 @@
           try {
             clearTimeout(timeout);
             scheduledTweets.splice(index, 1);
+            
+            // Update UI before saving to cookies
+            const container = document.getElementById("scheduledTweets");
+            const counter = document.getElementById("tweetCounter");
+            
+            if (scheduledTweets.length === 0) {
+              container.innerHTML = `
+                <div class="text-center py-8">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 class="text-lg font-medium text-gray-900 mb-1">No tweets scheduled yet</h3>
+                  <p class="text-gray-500">Start planning your content by creating your first tweet above!</p>
+                </div>
+              `;
+            }
+            counter.textContent = scheduledTweets.length;
+            menu.classList.add('hidden');
+            
+            // Save to cookies after UI update
             await saveToCookies();
             updateScheduledTweets();
-            menu.classList.add('hidden');
           } catch (error) {
             console.error("Failed to delete tweet:", error);
             alert("Failed to delete tweet. Please try again.");
