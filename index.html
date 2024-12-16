@@ -119,6 +119,17 @@
       .app-logo:hover::after {
         animation: tick 1.5s ease-in-out;
       }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+      
+      .loading-count {
+        animation: pulse 1.5s ease-in-out infinite;
+        background-color: #e5e7eb;
+        color: transparent;
+      }
     </style>
   </head>
   <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -270,7 +281,7 @@
                   fill="currentColor"
                 >
                   <path
-                    fill-rule="evenodd"
+                    fill-rule="evenodd" 
                     d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
                     clip-rule="evenodd"
                   />
@@ -408,44 +419,66 @@
     </div>
 
     <script>
-      let scheduledTweets = loadFromCookies() || [];
+      let scheduledTweets = [];
+
+      // Initialize the app
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          await initDB();
+          scheduledTweets = await loadFromCookies();
+          updateScheduledTweets();
+          populateDateSelector();
+        } catch (error) {
+          console.error("Failed to initialize app:", error);
+          alert("Failed to load tweets. Please refresh the page.");
+        }
+      });
 
       function loadFromCookies() {
-        try {
-          const saved = localStorage.getItem("scheduledTweets");
-          const tweets = saved ? JSON.parse(saved) : [];
-          // Sort tweets by date (earliest first)
-          return tweets.sort((a, b) => new Date(a.date) - new Date(b.date));
-        } catch (error) {
-          console.error("Error loading tweets from storage:", error);
-          return [];
-        }
+        return new Promise((resolve, reject) => {
+          const transaction = db.transaction(['tweets'], 'readonly');
+          const store = transaction.objectStore('tweets');
+          const request = store.getAll();
+
+          request.onsuccess = () => {
+            const tweets = request.result || [];
+            // Sort tweets by date (earliest first)
+            resolve(tweets.sort((a, b) => new Date(a.date) - new Date(b.date)));
+          };
+
+          request.onerror = () => {
+            console.error("Error loading tweets from IndexedDB:", request.error);
+            reject(request.error);
+          };
+        });
       }
 
       function saveToCookies() {
-        try {
-          localStorage.setItem(
-            "scheduledTweets",
-            JSON.stringify(scheduledTweets)
-          );
-        } catch (error) {
-          console.error("Error saving tweets to storage:", error);
-          if (error.name === "QuotaExceededError") {
-            alert("Storage is full. Please delete some old tweets.");
-            scheduledTweets.pop();
-            try {
-              localStorage.setItem(
-                "scheduledTweets",
-                JSON.stringify(scheduledTweets)
-              );
-            } catch (retryError) {
-              console.error(
-                "Still cannot save after removing tweet:",
-                retryError
-              );
-            }
-          }
-        }
+        return new Promise((resolve, reject) => {
+          const transaction = db.transaction(['tweets'], 'readwrite');
+          const store = transaction.objectStore('tweets');
+
+          // Clear existing tweets
+          store.clear().onsuccess = () => {
+            // Add all tweets
+            let completed = 0;
+            scheduledTweets.forEach((tweet) => {
+              const request = store.add(tweet);
+              
+              request.onsuccess = () => {
+                completed++;
+                if (completed === scheduledTweets.length) {
+                  resolve();
+                }
+              };
+
+              request.onerror = () => {
+                console.error("Error saving tweet to IndexedDB:", request.error);
+                reject(request.error);
+              };
+            });
+          };
+        });
       }
 
       const dropzone = document.getElementById("dropzone");
@@ -570,23 +603,24 @@
 
       // Update the schedule button click handler
       document.getElementById("scheduleBtn").addEventListener("click", async () => {
-          const text = document.getElementById("tweetText").value;
-          if (!text) return;
+        const text = document.getElementById("tweetText").value;
+        if (!text) return;
 
-          const selectedDate = new Date(document.getElementById('dateSelector').value);
+        const selectedDate = new Date(document.getElementById('dateSelector').value);
 
-          const tweet = {
-            text,
-            image: currentImage,
-            date: selectedDate.toISOString(),
-          };
+        const tweet = {
+          text,
+          image: currentImage,
+          date: selectedDate.toISOString(),
+        };
 
-          scheduledTweets.push(tweet);
-          // Sort tweets by date after adding new one
-          scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
-          
+        scheduledTweets.push(tweet);
+        // Sort tweets by date after adding new one
+        scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        try {
+          await saveToCookies();
           updateScheduledTweets();
-          saveToCookies();
 
           // Reset form
           document.getElementById("tweetText").value = "";
@@ -599,20 +633,33 @@
           const arrow = document.getElementById("dropdownArrow");
           content.classList.remove("hidden");
           arrow.style.transform = "rotate(180deg)";
+        } catch (error) {
+          console.error("Failed to save tweet:", error);
+          alert("Failed to save tweet. Please try again.");
+        }
       });
 
       function updateScheduledTweets() {
         const container = document.getElementById("scheduledTweets");
         const counter = document.getElementById("tweetCounter");
         
+        // Show loading state
+        counter.classList.add('loading-count');
+        counter.textContent = '0';
+        
         // Sort tweets before updating UI
         scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
         
         container.innerHTML = "";
-        saveToCookies();
-
-        // Update counter
-        counter.textContent = scheduledTweets.length;
+        saveToCookies().then(() => {
+          // Remove loading state and update counter
+          counter.classList.remove('loading-count');
+          counter.textContent = scheduledTweets.length;
+        }).catch(() => {
+          // In case of error, still remove loading state
+          counter.classList.remove('loading-count');
+          counter.textContent = scheduledTweets.length;
+        });
 
         if (scheduledTweets.length === 0) {
           container.innerHTML = `
@@ -837,7 +884,6 @@
           </div>
         `;
         
-        // Create a timeout to reset the button if not clicked again
         const timeout = setTimeout(() => {
           button.innerHTML = `
             <div class="flex items-center gap-2">
@@ -847,17 +893,20 @@
               <span>Delete</span>
             </div>
           `;
-          // Reset the onclick handler without hiding the menu
           button.onclick = (event) => deleteTweet(index, event);
         }, 2000);
 
-        // Change the onclick to handle confirmation
-        button.onclick = () => {
-          clearTimeout(timeout);
-          scheduledTweets.splice(index, 1);
-          updateScheduledTweets();
-          saveToCookies();
-          menu.classList.add('hidden');
+        button.onclick = async () => {
+          try {
+            clearTimeout(timeout);
+            scheduledTweets.splice(index, 1);
+            await saveToCookies();
+            updateScheduledTweets();
+            menu.classList.add('hidden');
+          } catch (error) {
+            console.error("Failed to delete tweet:", error);
+            alert("Failed to delete tweet. Please try again.");
+          }
         };
       }
 
@@ -934,27 +983,32 @@
         editingTweetIndex = -1;
       }
       
-      function saveEditedTweet() {
+      async function saveEditedTweet() {
         if (editingTweetIndex === -1) return;
         
-        const tweet = scheduledTweets[editingTweetIndex];
-        tweet.text = document.getElementById('editTweetText').value;
-        tweet.date = document.getElementById('editDateSelector').value;
-        
-        // Update image if changed
-        const editPreview = document.getElementById('editPreview');
-        if (!editPreview.classList.contains('hidden')) {
-          tweet.image = editPreview.src;
-        } else {
-          tweet.image = null;
+        try {
+          const tweet = scheduledTweets[editingTweetIndex];
+          tweet.text = document.getElementById('editTweetText').value;
+          tweet.date = document.getElementById('editDateSelector').value;
+          
+          // Update image if changed
+          const editPreview = document.getElementById('editPreview');
+          if (!editPreview.classList.contains('hidden')) {
+            tweet.image = editPreview.src;
+          } else {
+            tweet.image = null;
+          }
+          
+          // Sort tweets by date
+          scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
+          
+          await saveToCookies();
+          updateScheduledTweets();
+          closeEditModal();
+        } catch (error) {
+          console.error("Failed to save edited tweet:", error);
+          alert("Failed to save changes. Please try again.");
         }
-        
-        // Sort tweets by date
-        scheduledTweets.sort((a, b) => new Date(a.date) - new Date(b.date));
-        
-        updateScheduledTweets();
-        saveToCookies();
-        closeEditModal();
       }
       
       // Add edit dropzone handlers
@@ -1064,6 +1118,32 @@
           }, 0);
         }
       }
+
+      let db;
+
+      // Initialize IndexedDB
+      const initDB = () => {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open('TweetPlannerDB', 1);
+
+          request.onerror = () => {
+            console.error('Error opening IndexedDB');
+            reject(request.error);
+          };
+
+          request.onsuccess = (event) => {
+            db = event.target.result;
+            resolve(db);
+          };
+
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('tweets')) {
+              db.createObjectStore('tweets', { keyPath: 'id', autoIncrement: true });
+            }
+          };
+        });
+      };
     </script>
   </body>
 </html>
