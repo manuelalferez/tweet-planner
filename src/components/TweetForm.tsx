@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { PencilIcon, PhotoIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTweets } from '../contexts/TweetContext';
 import { DateSelector } from './DateSelector';
@@ -11,16 +11,27 @@ export const TweetForm: React.FC = () => {
   const { addTweet } = useTweets();
   const dateRef = useRef<HTMLSelectElement>(null);
 
+  useEffect(() => {
+    const savedDate = localStorage.getItem('scheduledTweetDate');
+    if (savedDate && dateRef.current) {
+      dateRef.current.value = savedDate;
+    }
+  }, []);
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    localStorage.setItem('scheduledTweetDate', e.target.value);
+  };
+
   const handleSubmit = async () => {
     if (!text.trim()) return;
 
-    const tweet: Tweet = {
+    const tweetData = {
       text: text.trim(),
       image,
       date: dateRef.current?.value || new Date().toISOString(),
     };
 
-    await addTweet(tweet);
+    await addTweet(tweetData);
     setText('');
     setImage(null);
   };
@@ -57,7 +68,7 @@ export const TweetForm: React.FC = () => {
       </div>
 
       <ImageDropzone image={image} onImageChange={setImage} />
-      <DateSelector ref={dateRef} />
+      <DateSelector ref={dateRef} onChange={handleDateChange} />
 
       <button
         onClick={handleSubmit}

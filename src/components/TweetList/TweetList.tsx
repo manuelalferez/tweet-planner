@@ -92,11 +92,10 @@ export const TweetList: React.FC = () => {
                     </h3>
                   </div>
                   <div className="space-y-3">
-                    {dateTweets.map((tweet, index) => (
+                    {dateTweets.map((tweet) => (
                       <TweetItem
-                        key={tweet.text + index}
+                        key={tweet.id}
                         tweet={tweet}
-                        index={index}
                       />
                     ))}
                   </div>

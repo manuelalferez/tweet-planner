@@ -1,5 +1,5 @@
 export interface Tweet {
-  id?: number;
+  id: string;
   text: string;
   image: string | null;
   date: string;

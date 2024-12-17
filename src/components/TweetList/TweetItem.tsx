@@ -6,10 +6,9 @@ import { EditTweetModal } from '../EditTweetModal';
 
 interface TweetItemProps {
   tweet: Tweet;
-  index: number;
 }
 
-export const TweetItem: React.FC<TweetItemProps> = ({ tweet, index }) => {
+export const TweetItem: React.FC<TweetItemProps> = ({ tweet }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const { deleteTweet } = useTweets();
@@ -57,7 +56,7 @@ export const TweetItem: React.FC<TweetItemProps> = ({ tweet, index }) => {
     }
     
     setIsDeleting(true);
-    await deleteTweet(index);
+    await deleteTweet(tweet.id);
     setIsDeleteConfirming(false);
     setShowMenu(false);
   };
@@ -206,7 +205,6 @@ export const TweetItem: React.FC<TweetItemProps> = ({ tweet, index }) => {
       {showEditModal && (
         <EditTweetModal
           tweet={tweet}
-          index={index}
           onClose={() => setShowEditModal(false)}
         />
       )}

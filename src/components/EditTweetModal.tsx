@@ -7,13 +7,11 @@ import { ImageDropzone } from './ImageDropzone';
 
 interface EditTweetModalProps {
   tweet: Tweet;
-  index: number;
   onClose: () => void;
 }
 
 export const EditTweetModal: React.FC<EditTweetModalProps> = ({
   tweet,
-  index,
   onClose,
 }) => {
   const [text, setText] = useState(tweet.text);
@@ -32,7 +30,7 @@ export const EditTweetModal: React.FC<EditTweetModalProps> = ({
     };
 
     try {
-      await updateTweet(index, updatedTweet);
+      await updateTweet(tweet.id, updatedTweet);
       onClose();
     } catch (error) {
       console.error('Failed to update tweet:', error);
