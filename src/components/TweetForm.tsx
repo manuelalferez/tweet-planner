@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PencilIcon, PhotoIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, PhotoIcon, ClockIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useTweets } from '../contexts/TweetContext';
 import { DateSelector } from './DateSelector';
 import { ImageDropzone } from './ImageDropzone';
@@ -10,6 +10,8 @@ export const TweetForm: React.FC = () => {
   const [image, setImage] = useState<string | null>(null);
   const { addTweet } = useTweets();
   const dateRef = useRef<HTMLSelectElement>(null);
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [buttonState, setButtonState] = useState<'idle' | 'scheduling' | 'success'>('idle');
 
   useEffect(() => {
     const savedDate = localStorage.getItem('scheduledTweetDate');
@@ -22,24 +24,34 @@ export const TweetForm: React.FC = () => {
     localStorage.setItem('scheduledTweetDate', e.target.value);
   };
 
-  const handleSubmit = async () => {
-    if (!text.trim()) return;
+  const handleScheduleTweet = async () => {
+    setButtonState('scheduling');
+    try {
+      if (!text.trim()) return;
 
-    const tweetData = {
-      text: text.trim(),
-      image,
-      date: dateRef.current?.value || new Date().toISOString(),
-    };
+      const tweetData = {
+        text: text.trim(),
+        image,
+        date: dateRef.current?.value || new Date().toISOString(),
+      };
 
-    await addTweet(tweetData);
-    setText('');
-    setImage(null);
+      await addTweet(tweetData);
+      setText('');
+      setImage(null);
+      setButtonState('success');
+      setTimeout(() => {
+        setButtonState('idle');
+      }, 2000);
+    } catch (error) {
+      // ... error handling ...
+      setButtonState('idle');
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      handleScheduleTweet();
     }
   };
 
@@ -71,11 +83,26 @@ export const TweetForm: React.FC = () => {
       <DateSelector ref={dateRef} onChange={handleDateChange} />
 
       <button
-        onClick={handleSubmit}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2"
+        onClick={handleScheduleTweet}
+        disabled={buttonState !== 'idle'}
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-80"
       >
-        <ClockIcon className="h-5 w-5" />
-        Schedule Tweet
+        {buttonState === 'scheduling' ? (
+          <>
+            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+            <span>Scheduling...</span>
+          </>
+        ) : buttonState === 'success' ? (
+          <>
+            <CheckIcon className="h-5 w-5" />
+            <span>Scheduled!</span>
+          </>
+        ) : (
+          <>
+            <ClockIcon className="h-5 w-5" />
+            <span>Schedule Tweet</span>
+          </>
+        )}
       </button>
     </div>
   );
