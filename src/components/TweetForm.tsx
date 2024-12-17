@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { PencilIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, PhotoIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTweets } from '../contexts/TweetContext';
 import { DateSelector } from './DateSelector';
 import { ImageDropzone } from './ImageDropzone';
@@ -63,7 +63,7 @@ export const TweetForm: React.FC = () => {
         onClick={handleSubmit}
         className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2"
       >
-        <PhotoIcon className="h-5 w-5" />
+        <ClockIcon className="h-5 w-5" />
         Schedule Tweet
       </button>
     </div>

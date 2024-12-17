@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { EllipsisHorizontalIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { EllipsisHorizontalIcon, PencilIcon, TrashIcon, ClipboardDocumentIcon, ArrowTopRightOnSquareIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useTweets } from '../../contexts/TweetContext';
 import { Tweet } from '../../types/Tweet';
 import { EditTweetModal } from '../EditTweetModal';
@@ -69,34 +69,49 @@ export const TweetItem: React.FC<TweetItemProps> = ({ tweet, index }) => {
   const handleCopyImage = useCallback(async () => {
     if (!tweet.image) return;
     
+    // Immediately show copied state
+    setIsCopied(true);
+    
     try {
-      setIsCopied(true);
+      // Create an image element and load the image
+      const img = new Image();
+      img.crossOrigin = 'anonymous'; // Enable CORS
+      img.src = tweet.image;
       
-      // Fetch the image
-      const response = await fetch(tweet.image);
-      const blob = await response.blob();
-      
-      // Create a ClipboardItem
-      const data = new ClipboardItem({
-        [blob.type]: blob
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
       });
-      
-      // Copy to clipboard
-      await navigator.clipboard.write([data]);
-      
-      setTimeout(() => setIsCopied(false), 2000);
+
+      // Create a canvas and draw the image
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+
+      // Convert canvas to blob and copy
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), 'image/png');
+      });
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob
+        })
+      ]);
     } catch (err) {
       console.error('Failed to copy image:', err);
-      setIsCopied(false);
       // Fallback to copying URL if image copying fails
       try {
         await navigator.clipboard.writeText(tweet.image);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
       } catch (fallbackErr) {
         console.error('Failed to copy image URL:', fallbackErr);
       }
     }
+
+    // Reset copied state after 2 seconds regardless of success/failure
+    setTimeout(() => setIsCopied(false), 2000);
   }, [tweet.image]);
 
   return (
@@ -145,22 +160,45 @@ export const TweetItem: React.FC<TweetItemProps> = ({ tweet, index }) => {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {tweet.image && (
+                <button
+                  onClick={handleCopyImage}
+                  className={`px-3 py-1.5 text-sm bg-gray-100 text-gray-700 
+                  rounded-lg hover:bg-gray-200 flex items-center justify-center gap-1.5 
+                  transition-all duration-200 border border-gray-200
+                  disabled:cursor-not-allowed disabled:opacity-80 overflow-hidden`}
+                  disabled={isCopied}
+                >
+                  <div className="flex items-center justify-center gap-2 w-full">
+                    <div className="relative w-4 h-4 flex-shrink-0">
+                      <ClipboardDocumentIcon 
+                        className={`absolute inset-0 h-4 w-4 transition-all duration-300 ${
+                          isCopied ? '-translate-y-6 opacity-0' : 'translate-y-0 opacity-100'
+                        }`}
+                      />
+                      <CheckIcon 
+                        className={`absolute inset-0 h-4 w-4 text-green-600 transition-all duration-300 ${
+                          isCopied ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+                        }`}
+                      />
+                    </div>
+                    <span className={`font-medium transition-all duration-300 whitespace-nowrap inline-block ${
+                      isCopied ? 'text-green-600' : ''
+                    }`}>
+                      {isCopied ? 'Copied!' : 'Copy Image'}
+                    </span>
+                  </div>
+                </button>
+              )}
               <a
                 href={getTweetUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1"
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1.5"
               >
+                <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                 Post
               </a>
-              {tweet.image && (
-                <button
-                  onClick={handleCopyImage}
-                  className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center justify-center gap-1 transition-colors"
-                >
-                  {isCopied ? 'Copied!' : 'Copy Image'}
-                </button>
-              )}
             </div>
           </div>
         </div>
