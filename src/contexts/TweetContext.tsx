@@ -43,9 +43,8 @@ export const TweetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const deleteTweet = async (index: number) => {
-    const newTweets = tweets.filter((_, i) => i !== index);
-    await databaseService.saveTweets(newTweets);
-    setTweets(newTweets);
+    setTweets(prevTweets => prevTweets.filter((_, i) => i !== index));
+    await databaseService.saveTweets(tweets.filter((_, i) => i !== index));
   };
 
   return (

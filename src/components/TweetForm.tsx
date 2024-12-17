@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { PencilIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import { useTweets } from '../../contexts/TweetContext';
-import { DateSelector } from '../DateSelector/DateSelector';
-import { ImageDropzone } from '../ImageDropzone/ImageDropzone';
-import type { Tweet } from '../../types/Tweet';
+import { useTweets } from '../contexts/TweetContext';
+import { DateSelector } from './DateSelector';
+import { ImageDropzone } from './ImageDropzone';
+import type { Tweet } from '../types/Tweet';
 
 export const TweetForm: React.FC = () => {
   const [text, setText] = useState('');

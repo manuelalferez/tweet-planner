@@ -1,8 +1,8 @@
 import React from 'react';
-import { Header } from './components/Header/Header';
-import { TweetForm } from './components/TweetForm/TweetForm';
+import { Header } from './components/Header';
+import { TweetForm } from './components/TweetForm';
 import { TweetList } from './components/TweetList/TweetList';
-import { Footer } from './components/Footer/Footer';
+import { Footer } from './components/Footer';
 import { TweetProvider } from './contexts/TweetContext';
 import './styles/globals.css';
 

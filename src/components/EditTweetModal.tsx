@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useTweets } from '../../contexts/TweetContext';
-import { Tweet } from '../../types/Tweet';
-import { DateSelector } from '../DateSelector/DateSelector';
-import { ImageDropzone } from '../ImageDropzone/ImageDropzone';
+import { useTweets } from '../contexts/TweetContext';
+import { Tweet } from '../types/Tweet';
+import { DateSelector } from './DateSelector';
+import { ImageDropzone } from './ImageDropzone';
 
 interface EditTweetModalProps {
   tweet: Tweet;
