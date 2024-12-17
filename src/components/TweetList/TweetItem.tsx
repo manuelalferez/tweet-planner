@@ -135,7 +135,7 @@ export const TweetItem: React.FC<TweetItemProps> = ({ tweet }) => {
                   <EllipsisHorizontalIcon className="h-5 w-5 text-gray-500" />
                 </button>
                 {showMenu && (
-                  <div className="absolute right-0 top-8 w-36 bg-white border rounded-lg shadow-lg py-1 z-10">
+                  <div className="absolute right-0 top-8 w-36 bg-white border rounded-lg shadow-lg py-1 z-[5]">
                     <button
                       onClick={() => {
                         setShowEditModal(true);
@@ -165,23 +165,16 @@ export const TweetItem: React.FC<TweetItemProps> = ({ tweet }) => {
                   className={`px-3 py-1.5 text-sm bg-gray-100 text-gray-700 
                   rounded-lg hover:bg-gray-200 flex items-center justify-center gap-1.5 
                   transition-all duration-200 border border-gray-200
-                  disabled:cursor-not-allowed disabled:opacity-80 overflow-hidden`}
+                  disabled:cursor-not-allowed disabled:opacity-80`}
                   disabled={isCopied}
                 >
-                  <div className="flex items-center justify-center gap-2 w-full">
-                    <div className="relative w-4 h-4 flex-shrink-0">
-                      <ClipboardDocumentIcon 
-                        className={`absolute inset-0 h-4 w-4 transition-all duration-300 ${
-                          isCopied ? '-translate-y-6 opacity-0' : 'translate-y-0 opacity-100'
-                        }`}
-                      />
-                      <CheckIcon 
-                        className={`absolute inset-0 h-4 w-4 text-green-600 transition-all duration-300 ${
-                          isCopied ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-                        }`}
-                      />
-                    </div>
-                    <span className={`font-medium transition-all duration-300 whitespace-nowrap inline-block ${
+                  <div className="flex items-center justify-center gap-2">
+                    {isCopied ? (
+                      <CheckIcon className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <ClipboardDocumentIcon className="h-4 w-4" />
+                    )}
+                    <span className={`font-medium whitespace-nowrap ${
                       isCopied ? 'text-green-600' : ''
                     }`}>
                       {isCopied ? 'Copied!' : 'Copy Image'}
