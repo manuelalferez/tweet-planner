@@ -1,14 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import {
-  PencilIcon,
-  PhotoIcon,
-  ClockIcon,
-  CheckIcon,
-} from "@heroicons/react/24/outline";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { PencilIcon, ClockIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { useTweets } from "../contexts/TweetContext";
 import { DateSelector } from "./DateSelector";
 import { ImageDropzone } from "./ImageDropzone";
-import type { Tweet } from "../types/Tweet";
 
 export const TweetForm: React.FC = () => {
   const [text, setText] = useState("");
@@ -16,10 +10,14 @@ export const TweetForm: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { addTweet } = useTweets();
   const dateRef = useRef<HTMLSelectElement>(null);
-  const [isScheduling, setIsScheduling] = useState(false);
   const [buttonState, setButtonState] = useState<
     "idle" | "scheduling" | "success"
   >("idle");
+
+  const MAX_TWEET_LENGTH = 280;
+  const remainingChars = MAX_TWEET_LENGTH - text.length;
+  const isNearLimit = remainingChars <= 20;
+  const isOverLimit = remainingChars < 0;
 
   useEffect(() => {
     const savedDate = localStorage.getItem("scheduledTweetDate");
@@ -52,7 +50,6 @@ export const TweetForm: React.FC = () => {
         setButtonState("idle");
       }, 2000);
     } catch (error) {
-      // ... error handling ...
       setButtonState("idle");
     }
   };
@@ -86,14 +83,25 @@ export const TweetForm: React.FC = () => {
         </div>
       </h1>
 
-      <div>
+      <div className="relative">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="w-full p-3 border rounded-lg resize-none h-24"
+          className="w-full p-3 border rounded-lg resize-none h-40"
           placeholder="What's happening?"
         />
+        <div
+          className={`absolute bottom-2 right-2 text-sm ${
+            isOverLimit
+              ? "text-red-500"
+              : isNearLimit
+              ? "text-yellow-500"
+              : "text-gray-500"
+          }`}
+        >
+          {remainingChars}
+        </div>
       </div>
 
       <ImageDropzone
@@ -105,7 +113,7 @@ export const TweetForm: React.FC = () => {
 
       <button
         onClick={handleScheduleTweet}
-        disabled={buttonState !== "idle"}
+        disabled={buttonState !== "idle" || isOverLimit || !text.trim()}
         className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-80"
       >
         {buttonState === "scheduling" ? (
